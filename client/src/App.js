@@ -8,7 +8,10 @@ import ProductList from './components/ProductList';
 import SalesChart from './components/SalesChart';
 import AddProduct from './components/AddProduct';
 import EditProduct from './components/EditProduct';
-// import OrderForm from './components/OrderForm';
+import OrderForm from './components/OrderForm';
+import Reports from './components/Reports';
+import ProductClassifier from './components/ProductClassifier';
+import Dashboard from './components/Dashboard';
 
 const App = () => {
   return (
@@ -23,7 +26,8 @@ const App = () => {
               <Route path="/products" element={<ProductList />} />
               <Route path="/products/add" element={<AddProduct />} />
               <Route path="/products/edit/:id" element={<EditProduct />} />
-              {/* <Route path="/orders" element={<OrderForm />} /> */}
+              <Route path="/orders" element={<OrderForm />} />
+              <Route path="/reports" element={<Dashboard />} />
             </Routes>
           </div>
         </div>

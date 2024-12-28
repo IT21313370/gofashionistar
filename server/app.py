@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import sqlite3
 
+
 app = Flask(__name__)
 CORS(app)
 
@@ -15,6 +16,81 @@ def get_db_connection():
     except sqlite3.Error as e:
         print(f"Database connection error: {e}")
         return None
+
+@app.route('/api/category-distribution', methods=['GET'])
+def get_category_distribution():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({'error': 'Failed to connect to the database'}), 500
+
+    try:
+        category_count = conn.execute('''
+            SELECT category, COUNT(*) AS count
+            FROM products
+            GROUP BY category
+        ''').fetchall()
+        return jsonify([dict(row) for row in category_count])
+    except sqlite3.Error as e:
+        return jsonify({'error': f'Database query error: {e}'}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/brand-distribution', methods=['GET'])
+def get_brand_distribution():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({'error': 'Failed to connect to the database'}), 500
+
+    try:
+        brand_count = conn.execute('''
+            SELECT brand, COUNT(*) AS count
+            FROM products
+            GROUP BY brand
+        ''').fetchall()
+        return jsonify([dict(row) for row in brand_count])
+    except sqlite3.Error as e:
+        return jsonify({'error': f'Database query error: {e}'}), 500
+    finally:
+        conn.close()
+
+
+
+
+@app.route('/api/price-distribution', methods=['GET'])
+def get_price_distribution():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({'error': 'Failed to connect to the database'}), 500
+
+    try:
+        prices = conn.execute('''
+            SELECT price
+            FROM products
+        ''').fetchall()
+        return jsonify([row['price'] for row in prices])
+    except sqlite3.Error as e:
+        return jsonify({'error': f'Database query error: {e}'}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/average-ratings', methods=['GET'])
+def get_average_ratings():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({'error': 'Failed to connect to the database'}), 500
+
+    try:
+        category_ratings = conn.execute('''
+            SELECT category, AVG(rating) AS avg_rating
+            FROM products
+            GROUP BY category
+        ''').fetchall()
+        return jsonify([dict(row) for row in category_ratings])
+    except sqlite3.Error as e:
+        return jsonify({'error': f'Database query error: {e}'}), 500
+    finally:
+        conn.close()
+
 
 @app.route('/api/search-products', methods=['GET'])
 def search_products():
