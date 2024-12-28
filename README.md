@@ -7,10 +7,11 @@ Run databse.py and script.py in flask app to create database and add 1000 rows d
 
 Below is a screenshot of the application interface:
 
-![Application Interface](https://raw.githubusercontent.com/IT21313370/gofashionistar/main/Screenshot%202024-12-28%20152819.png)
-![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20152829.png)
-![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20153652.png)
-![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20152856.png)
+![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20192732.png)
+![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20192751.png)
+![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20192822.png)
+![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20192844.png)
+![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20192857.png)
 
 
 
