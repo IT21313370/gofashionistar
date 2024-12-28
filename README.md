@@ -20,7 +20,7 @@ Ensure you have the following installed on your system:
 
 - **Node.js** (which includes npm): [Download Node.js](https://nodejs.org/)
 - **Python 3.x**: [Download Python](https://www.python.org/)
-- **Git**: [Download Git](https://github.com/IT21313370/gofashionistar.git)
+- **Git**: [Download Git](https://git-scm.com/)
 - Pycharm (Flask)
 - VS Code (React)
 
