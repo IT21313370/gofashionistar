@@ -1,7 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import sqlite3
-from flask import render_template
 
 app = Flask(__name__)
 CORS(app)
@@ -23,51 +22,16 @@ def search_products():
     if conn is None:
         return jsonify({'error': 'Failed to connect to the database'}), 500
 
-    # Extract query parameters
-    name = request.args.get('name')
-    min_price = request.args.get('min_price')
-    max_price = request.args.get('max_price')
-    brand = request.args.get('brand')
-    category = request.args.get('category')
-    min_rating = request.args.get('min_rating')
-    color = request.args.get('color')
-    size = request.args.get('size')
+    name = request.args.get('name', '')
+    min_price = request.args.get('min_price', 0)
+    max_price = request.args.get('max_price', float('inf'))
 
-    # Build the SQL query dynamically
-    query = "SELECT * FROM products WHERE 1=1"
-    params = []
-
-    if name:
-        query += " AND name LIKE ?"
-        params.append(f"%{name}%")
-    if min_price:
-        query += " AND price >= ?"
-        params.append(min_price)
-    if max_price:
-        query += " AND price <= ?"
-        params.append(max_price)
-    if brand:
-        query += " AND brand LIKE ?"
-        params.append(f"%{brand}%")
-    if category:
-        query += " AND category LIKE ?"
-        params.append(f"%{category}%")
-    if min_rating:
-        query += " AND rating >= ?"
-        params.append(min_rating)
-    if color:
-        query += " AND color LIKE ?"
-        params.append(f"%{color}%")
-    if size:
-        query += " AND size LIKE ?"
-        params.append(f"%{size}%")
+    query = "SELECT * FROM products WHERE name LIKE ? AND price BETWEEN ? AND ?"
+    params = [f"%{name}%", min_price, max_price]
 
     try:
-        # Execute the query with parameters
         products = conn.execute(query, params).fetchall()
-        # Convert the result to a list of dictionaries
-        product_list = [dict(row) for row in products]
-        return jsonify(product_list)
+        return jsonify([dict(row) for row in products])
     except sqlite3.Error as e:
         return jsonify({'error': f'Database query error: {e}'}), 500
     finally:
@@ -92,20 +56,17 @@ def in_stock_categories():
     if conn is None:
         return jsonify({'error': 'Failed to connect to the database'}), 500
     try:
-        # Execute the SQL query to count distinct categories with quantity > 0
         result = conn.execute('''
             SELECT COUNT(DISTINCT category) AS in_stock_category_count
             FROM products
             WHERE quantity > 0
         ''').fetchone()
-        # Retrieve the count from the query result
         in_stock_category_count = result['in_stock_category_count'] if result else 0
         return jsonify({'in_stock_category_count': in_stock_category_count})
     except sqlite3.Error as e:
         return jsonify({'error': f'Database query error: {e}'}), 500
     finally:
         conn.close()
-
 
 @app.route('/api/out-of-stock-products', methods=['GET'])
 def out_of_stock_products():
@@ -130,13 +91,11 @@ def on_sale_products():
     if conn is None:
         return jsonify({'error': 'Failed to connect to the database'}), 500
     try:
-        # Execute the SQL query to count unique in-stock products
         result = conn.execute('''
             SELECT COUNT(DISTINCT name) AS in_stock_count
             FROM products
             WHERE quantity > 0
         ''').fetchone()
-        # Retrieve the count from the query result
         in_stock_count = result['in_stock_count'] if result else 0
         return jsonify({'in_stock_count': in_stock_count})
     except sqlite3.Error as e:
@@ -144,6 +103,47 @@ def on_sale_products():
     finally:
         conn.close()
 
+@app.route('/api/orders', methods=['POST'])
+def create_order():
+    data = request.get_json()
+    product_id = data.get('product_id')
+    customer_name = data.get('customer_name')
+    customer_address = data.get('customer_address')
+    discount = data.get('discount', 0)
+    product_count = data.get('product_count', 1)
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({'error': 'Failed to connect to the database'}), 500
+
+    try:
+        cur = conn.cursor()
+        cur.execute('SELECT id, price, stock FROM products WHERE id = ?', (product_id,))
+        product = cur.fetchone()
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+
+        product_id, price, stock = product
+
+        if stock < product_count:
+            return jsonify({'error': 'Insufficient stock'}), 400
+
+        total_price = price * product_count * (1 - discount / 100)
+
+        cur.execute('''
+            INSERT INTO sales (product_id, customer_name, customer_address, quantity, total_price)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (product_id, customer_name, customer_address, product_count, total_price))
+
+        cur.execute('UPDATE products SET stock = stock - ? WHERE id = ?', (product_count, product_id))
+
+        conn.commit()
+        return jsonify({'message': 'Order placed successfully'}), 201
+    except sqlite3.Error as e:
+        conn.rollback()
+        return jsonify({'error': f'Database error: {e}'}), 500
+    finally:
+        conn.close()
 
 @app.route('/products', methods=['GET'])
 def get_products():
@@ -157,52 +157,6 @@ def get_products():
         return jsonify({'error': f'Database query error: {e}'}), 500
     finally:
         conn.close()
-
-
-@app.route('/api/orders', methods=['POST'])
-def create_order():
-    data = request.get_json()
-    product_id = data.get('product_id')
-    customer_name = data.get('customer_name')
-    customer_address = data.get('customer_address')
-    discount = data.get('discount', 0)
-    product_count = data.get('product_count', 1)
-
-    try:
-        db = get_db()
-        cur = db.cursor()
-
-        # Fetch the product
-        cur.execute('SELECT id, price, stock FROM products WHERE id = ?', (product_id,))
-        product = cur.fetchone()
-        if not product:
-            return jsonify({'error': 'Product not found'}), 404
-
-        product_id, price, stock = product
-
-        # Check stock availability
-        if stock < product_count:
-            return jsonify({'error': 'Insufficient stock'}), 400
-
-        # Calculate total price after discount
-        total_price = price * product_count * (1 - discount / 100)
-
-        # Record the sale
-        cur.execute('''
-            INSERT INTO sales (product_id, customer_name, customer_address, quantity, total_price)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (product_id, customer_name, customer_address, product_count, total_price))
-
-        # Update product stock
-        cur.execute('UPDATE products SET stock = stock - ? WHERE id = ?', (product_count, product_id))
-
-        db.commit()
-        return jsonify({'message': 'Order placed successfully'}), 201
-    except sqlite3.Error as e:
-        db.rollback()
-        return jsonify({'error': f'Database error: {e}'}), 500
-
-
 
 @app.route('/products', methods=['POST'])
 def add_product():
@@ -236,22 +190,6 @@ def add_product():
         return jsonify({'error': f'Database insertion error: {e}'}), 500
     finally:
         conn.close()
-
-
-@app.route('/api/products', methods=['GET'])
-def get_products():
-    conn = get_db_connection()
-    if conn is None:
-        return jsonify({'error': 'Failed to connect to the database'}), 500
-    try:
-        products = conn.execute('SELECT * FROM products').fetchall()
-        return jsonify([dict(row) for row in products])
-    except sqlite3.Error as e:
-        return jsonify({'error': f'Database query error: {e}'}), 500
-    finally:
-        conn.close()
-
-
 
 @app.route('/products/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
@@ -302,13 +240,9 @@ def delete_product(product_id):
     finally:
         conn.close()
 
-
-
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
