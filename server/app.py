@@ -5,7 +5,7 @@ import sqlite3
 
 HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/google/t5-small-ssm-nq"
 
-HUGGING_FACE_API_TOKEN = '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'
+HUGGING_FACE_API_TOKEN = 'HUGGING_FACE_API_TOKEN'
 
 
 app = Flask(__name__)
