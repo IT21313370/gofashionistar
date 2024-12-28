@@ -12,6 +12,7 @@ import OrderForm from './components/OrderForm';
 import Reports from './components/Reports';
 import ProductClassifier from './components/ProductClassifier';
 import Dashboard from './components/Dashboard';
+import ChatbotComponent from './components/ChatBotComponent';
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
               <Route path="/products/edit/:id" element={<EditProduct />} />
               <Route path="/orders" element={<OrderForm />} />
               <Route path="/reports" element={<Dashboard />} />
+              <Route path="/customers" element={<ChatbotComponent />} />
             </Routes>
           </div>
         </div>

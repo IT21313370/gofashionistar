@@ -1,6 +1,11 @@
+import requests
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import sqlite3
+
+HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/google/t5-small-ssm-nq"
+
+HUGGING_FACE_API_TOKEN = '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'
 
 
 app = Flask(__name__)
@@ -16,6 +21,58 @@ def get_db_connection():
     except sqlite3.Error as e:
         print(f"Database connection error: {e}")
         return None
+
+
+@app.route("/api/query", methods=["POST"])
+def query_database():
+    data = request.json
+    question = data.get("question", "").lower()  # Convert question to lowercase for intent detection
+
+    # Intent detection and query assignment
+    if "price" in question:
+        query = "SELECT name, price FROM products"
+        context = "Here are some products and their prices."
+    elif "rating" in question:
+        query = "SELECT name, rating FROM products"
+        context = "Here are some products with their ratings."
+    elif "recommend" in question or "best" in question:
+        query = "SELECT name, price, rating FROM products ORDER BY rating DESC LIMIT 5"
+        context = "These are some highly-rated products you may like."
+    else:
+        query = "SELECT name, price, rating FROM products"
+        context = "Here is a list of products and their details."
+
+    # Fetch product data from the database
+    conn = get_db_connection()
+    products = conn.execute(query).fetchall()
+    conn.close()
+
+    # Format the results
+    results = [dict(row) for row in products]
+    if results:
+        formatted_results = "\n".join(
+            [f"- {p['name']}: ${p.get('price', 'N/A')}, Rating: {p.get('rating', 'N/A')}" for p in results]
+        )
+    else:
+        formatted_results = "No matching products found."
+
+    # Generate conversational response using Hugging Face
+    response = requests.post(
+        HUGGING_FACE_API_URL,
+        headers={"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"},
+        json={"inputs": f"{context}\n\n{formatted_results}\n\nUser Question: {question}"}
+    )
+    bot_response = response.json().get("generated_text", "I'm sorry, I couldn't understand that.")
+
+    # Combine the generated response with product details
+    if results:
+        combined_response = f"{bot_response}\n\nProduct Details:\n{formatted_results}"
+    else:
+        combined_response = bot_response
+
+    return jsonify({"bot_response": combined_response})
+
+
 
 @app.route('/api/category-distribution', methods=['GET'])
 def get_category_distribution():
