@@ -3,6 +3,15 @@
 This repository contains a React frontend and a Flask backend. Follow the instructions below to set up and run both applications locally.
 Run databse.py and script.py in flask app to create database and add 1000 rows data to the database.
 
+## Application Screenshot
+
+Below is a screenshot of the application interface:
+
+![Application Interface](https://raw.githubusercontent.com/IT21313370/gofashionistar/main/Screenshot%202024-12-28%20152819.png)
+![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20152829.png)
+![Application Interface](https://github.com/IT21313370/gofashionistar/blob/main/Screenshot%202024-12-28%20152856.png)
+
+
 
 ## Prerequisites
 
