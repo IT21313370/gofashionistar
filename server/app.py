@@ -1,12 +1,7 @@
-import requests
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import sqlite3
 from transformers import pipeline
-
-# HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/google/t5-small-ssm-nq"
-#
-# HUGGING_FACE_API_TOKEN = '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'
 
 # Load Hugging Face chatbot model
 chatbot = pipeline('text-generation', model='microsoft/DialoGPT-medium')

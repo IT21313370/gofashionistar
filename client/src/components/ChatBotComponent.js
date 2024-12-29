@@ -6,36 +6,6 @@ function ChatBotComponent() {
     { id: 1, message: 'Hi there! How can I help you with our products today?', sender: 'bot' },
   ]);
 
-  // const handleUserMessage = async (message) => {
-  //   const userMessage = { id: messages.length + 1, message, sender: 'user' };
-  //   setMessages((prev) => [...prev, userMessage]);
-
-  //   try {
-  //     const response = await axios.post('http://localhost:5000/chat', { message });
-  //     const botResponse = {
-  //       id: messages.length + 2,
-  //       message: response.data.response,  // General response
-  //       sender: 'bot',
-  //     };
-  //     setMessages((prev) => [...prev, botResponse]);
-
-  //     if (response.data.products) {
-  //       const productMessages = response.data.products.map((product, index) => ({
-  //         id: messages.length + 3 + index,
-  //         message: `${product.name} - ${product.category} - $${product.price}`,
-  //         sender: 'bot',
-  //       }));
-  //       setMessages((prev) => [...prev, ...productMessages]);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching chatbot response:', error);
-  //     setMessages((prev) => [
-  //       ...prev,
-  //       { id: messages.length + 2, message: 'Sorry, something went wrong.', sender: 'bot' },
-  //     ]);
-  //   }
-  // };
-
   const handleUserMessage = async (message) => {
     const userMessage = { id: messages.length + 1, message, sender: 'user' };
     setMessages((prev) => [...prev, userMessage]);
