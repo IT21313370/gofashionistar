@@ -288,6 +288,7 @@ def get_products():
     finally:
         conn.close()
 
+
 @app.route('/products', methods=['POST'])
 def add_product():
     data = request.json
@@ -299,6 +300,15 @@ def add_product():
     if conn is None:
         return jsonify({'error': 'Failed to connect to the database'}), 500
     try:
+        # Check if product with the same name (case-insensitive) already exists
+        existing_product = conn.execute(
+            'SELECT * FROM products WHERE LOWER(name) = LOWER(?)',
+            (data['name'],)
+        ).fetchone()
+
+        if existing_product:
+            return jsonify({'error': 'Product with the same name already exists'}), 400
+
         conn.execute(
             '''INSERT INTO products (name, price, brand, category, rating, color, size)
                VALUES (?, ?, ?, ?, ?, ?, ?)''',
@@ -317,7 +327,7 @@ def add_product():
 @app.route('/products/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
     data = request.json
-    required_fields = ['name', 'price', 'brand', 'category', 'rating', 'color', 'size', 'quantity', 'on_sale']
+    required_fields = ['name', 'price', 'brand', 'category', 'rating', 'color', 'size']
     if not all(field in data for field in required_fields):
         return jsonify({'error': f'Missing required fields: {", ".join(required_fields)}'}), 400
 
@@ -327,27 +337,27 @@ def update_product(product_id):
     try:
         conn.execute(
             '''UPDATE products
-               SET name = ?, price = ?, brand = ?, category = ?, rating = ?, color = ?, size = ?, quantity = ?, on_sale = ?
+               SET name = ?, price = ?, brand = ?, category = ?, rating = ?, color = ?, size = ?
                WHERE id = ?''',
             (
                 data['name'],
                 data['price'],
-                data.get('brand'),
-                data.get('category'),
-                data.get('rating'),
-                data.get('color'),
-                data.get('size'),
-                data['quantity'],
-                data['on_sale'],
+                data['brand'],
+                data['category'],
+                data['rating'],
+                data['color'],
+                data['size'],
                 product_id
             )
         )
         conn.commit()
         return jsonify({'message': 'Product updated successfully'})
     except sqlite3.Error as e:
+        conn.rollback()
         return jsonify({'error': f'Database update error: {e}'}), 500
     finally:
         conn.close()
+
 
 @app.route('/products/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):

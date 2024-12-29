@@ -65,7 +65,7 @@ const AssetChart = () => {
               label: 'Product Count',
               data: counts,
               backgroundColor: backgroundColors,
-              borderColor: '#6366f1',
+              borderColor: '#fff',
               borderWidth: 1,
             },
           ],
@@ -77,9 +77,16 @@ const AssetChart = () => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: 'x', // Ensure bars are oriented vertically
     scales: {
-      x: { beginAtZero: true },
-      y: { beginAtZero: true },
+      x: {
+        beginAtZero: true,
+        stacked: false,
+      },
+      y: {
+        beginAtZero: true,
+        stacked: false,
+      },
     },
     plugins: {
       legend: {
@@ -88,18 +95,19 @@ const AssetChart = () => {
           generateLabels(chart) {
             const original = ChartJS.defaults.plugins.legend.labels.generateLabels;
             const labelsOriginal = original.call(this, chart);
-
+  
             labelsOriginal.forEach((label) => {
               label.fillStyle = 'rgba(0, 0, 0, 0)'; // Make the color box transparent
               label.strokeStyle = 'rgba(0, 0, 0, 0)'; // Also make the border of the color box transparent
             });
-
+  
             return labelsOriginal;
           },
         },
       },
     },
   };
+  
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md h-64 md:h-72 lg:h-[500px] xl:h-[470px]">
