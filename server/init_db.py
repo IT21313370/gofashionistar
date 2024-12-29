@@ -21,17 +21,17 @@ def init_db():
     ''')
 
     # Create the sales table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS sales (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        product_id INTEGER NOT NULL,
-        customer_name TEXT NOT NULL,
-        customer_address TEXT NOT NULL,
-        quantity INTEGER NOT NULL,
-        total_price REAL NOT NULL,
-        FOREIGN KEY (product_id) REFERENCES products (id)
-    )
-    ''')
+    # cursor.execute('''
+    # CREATE TABLE IF NOT EXISTS sales (
+    #     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    #     product_id INTEGER NOT NULL,
+    #     customer_name TEXT NOT NULL,
+    #     customer_address TEXT NOT NULL,
+    #     quantity INTEGER NOT NULL,
+    #     total_price REAL NOT NULL,
+    #     FOREIGN KEY (product_id) REFERENCES products (id)
+    # )
+    # ''')
 
     conn.commit()
     conn.close()

@@ -36,19 +36,19 @@ const ProductOverview = () => {
 
   return (
     <div className="grid grid-cols-4 gap-4 mb-6">
-      <div className="bg-blue-100 p-4 rounded-lg text-center">
+      <div className="bg-teal-600 text-white p-4 rounded-lg text-center">
         <h3 className="text-xl font-semibold">Total Products</h3>
         <p className="text-2xl font-bold">{totalProducts}</p>
       </div>
-      <div className="bg-green-100 p-4 rounded-lg text-center">
+      <div className="bg-green-600 text-white p-4 rounded-lg text-center">
         <h3 className="text-xl font-semibold">In-Stock</h3>
         <p className="text-2xl font-bold">{inStockCount}</p>
       </div>
-      <div className="bg-red-100 p-4 rounded-lg text-center">
+      <div className="bg-red-600 text-white p-4 rounded-lg text-center">
         <h3 className="text-xl font-semibold">Out of Stock</h3>
         <p className="text-2xl font-bold">{outOfStockCount}</p>
       </div>
-      <div className="bg-yellow-100 p-4 rounded-lg text-center">
+      <div className="bg-orange-600 text-white p-4 rounded-lg text-center">
         <h3 className="text-xl font-semibold">On Sale</h3>
         <p className="text-2xl font-bold">0</p>
       </div>

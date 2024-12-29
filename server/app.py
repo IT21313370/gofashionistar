@@ -5,7 +5,7 @@ import sqlite3
 
 HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/google/t5-small-ssm-nq"
 
-HUGGING_FACE_API_TOKEN = 'HUGGING_FACE_API_TOKEN'
+HUGGING_FACE_API_TOKEN = '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'
 
 
 app = Flask(__name__)
@@ -26,51 +26,48 @@ def get_db_connection():
 @app.route("/api/query", methods=["POST"])
 def query_database():
     data = request.json
-    question = data.get("question", "").lower()  # Convert question to lowercase for intent detection
+    question = data.get("question", "").lower()
 
-    # Intent detection and query assignment
+    # Intent detection
     if "price" in question:
-        query = "SELECT name, price FROM products"
+        query = "SELECT name, price FROM products ORDER BY price ASC LIMIT 5"
         context = "Here are some products and their prices."
     elif "rating" in question:
-        query = "SELECT name, rating FROM products"
+        query = "SELECT name, rating FROM products ORDER BY rating DESC LIMIT 5"
         context = "Here are some products with their ratings."
     elif "recommend" in question or "best" in question:
         query = "SELECT name, price, rating FROM products ORDER BY rating DESC LIMIT 5"
         context = "These are some highly-rated products you may like."
     else:
-        query = "SELECT name, price, rating FROM products"
-        context = "Here is a list of products and their details."
+        return jsonify({"bot_response": "I'm sorry, I didn't understand that. Please ask about products, such as prices or ratings."})
 
-    # Fetch product data from the database
+    # Fetch product data
     conn = get_db_connection()
     products = conn.execute(query).fetchall()
     conn.close()
 
-    # Format the results
+    # Format results intelligently
     results = [dict(row) for row in products]
     if results:
-        formatted_results = "\n".join(
-            [f"- {p['name']}: ${p.get('price', 'N/A')}, Rating: {p.get('rating', 'N/A')}" for p in results]
-        )
+        summary = "\n".join([f"- {p['name']}: ${p.get('price', 'N/A')}, Rating: {p.get('rating', 'N/A')}" for p in results])
+        if len(results) > 5:
+            summary += "\n...and more. Please refine your query for additional details."
     else:
-        formatted_results = "No matching products found."
+        summary = "No matching products found."
 
-    # Generate conversational response using Hugging Face
+    # Generate conversational response
     response = requests.post(
         HUGGING_FACE_API_URL,
         headers={"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"},
-        json={"inputs": f"{context}\n\n{formatted_results}\n\nUser Question: {question}"}
+        json={"inputs": f"{context}\n\n{summary}\n\nUser Question: {question}"}
     )
     bot_response = response.json().get("generated_text", "I'm sorry, I couldn't understand that.")
 
-    # Combine the generated response with product details
-    if results:
-        combined_response = f"{bot_response}\n\nProduct Details:\n{formatted_results}"
-    else:
-        combined_response = bot_response
+    # Combine bot response and formatted results
+    combined_response = f"{bot_response}\n\nProduct Details:\n{summary}" if results else bot_response
 
     return jsonify({"bot_response": combined_response})
+
 
 
 
@@ -294,7 +291,7 @@ def get_products():
 @app.route('/products', methods=['POST'])
 def add_product():
     data = request.json
-    required_fields = ['name', 'price', 'quantity', 'on_sale']
+    required_fields = ['name', 'price', 'brand', 'category', 'rating', 'color', 'size']
     if not all(field in data for field in required_fields):
         return jsonify({'error': f'Missing required fields: {", ".join(required_fields)}'}), 400
 
@@ -303,31 +300,24 @@ def add_product():
         return jsonify({'error': 'Failed to connect to the database'}), 500
     try:
         conn.execute(
-            '''INSERT INTO products (name, price, brand, category, rating, color, size, quantity, on_sale)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-            (
-                data['name'],
-                data['price'],
-                data.get('brand'),
-                data.get('category'),
-                data.get('rating'),
-                data.get('color'),
-                data.get('size'),
-                data['quantity'],
-                data['on_sale']
-            )
+            '''INSERT INTO products (name, price, brand, category, rating, color, size)
+               VALUES (?, ?, ?, ?, ?, ?, ?)''',
+            (data['name'], data['price'], data.get('brand', ''), data.get('category', ''),
+             data.get('rating', 0), data['color'], data['size'])
         )
         conn.commit()
         return jsonify({'message': 'Product added successfully'}), 201
     except sqlite3.Error as e:
-        return jsonify({'error': f'Database insertion error: {e}'}), 500
+        conn.rollback()
+        return jsonify({'error': f'Database error: {e}'}), 500
     finally:
         conn.close()
+
 
 @app.route('/products/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
     data = request.json
-    required_fields = ['name', 'price', 'quantity', 'on_sale']
+    required_fields = ['name', 'price', 'brand', 'category', 'rating', 'color', 'size', 'quantity', 'on_sale']
     if not all(field in data for field in required_fields):
         return jsonify({'error': f'Missing required fields: {", ".join(required_fields)}'}), 400
 
@@ -376,6 +366,8 @@ def delete_product(product_id):
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

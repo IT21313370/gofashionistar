@@ -17,11 +17,11 @@ import ChatbotComponent from './components/ChatBotComponent';
 const App = () => {
   return (
     <Router>
-      <div className="flex flex-col sm:flex-row">
-        <Sidebar />
-        <div className="flex-1">
-          <Topbar />
-          <div className="p-4 sm:p-6 h-[calc(100vh-4rem)] overflow-y-auto">
+      <div className="flex flex-col h-screen border-bottom-5 border-green-400">
+        <Topbar />
+        <div className="flex flex-row flex-1 overflow-hidden">
+          <Sidebar />
+          <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
             <Routes>
               <Route path="/" element={<><ProductOverview /><SalesChart /></>} />
               <Route path="/products" element={<ProductList />} />
