@@ -71,53 +71,6 @@ def chat():
     return jsonify({'response': response})
 
 
-# @app.route("/api/query", methods=["POST"])
-# def query_database():
-#     data = request.json
-#     question = data.get("question", "").lower()
-#
-#     # Intent detection
-#     if "price" in question:
-#         query = "SELECT name, price FROM products ORDER BY price ASC LIMIT 5"
-#         context = "Here are some products and their prices."
-#     elif "rating" in question:
-#         query = "SELECT name, rating FROM products ORDER BY rating DESC LIMIT 5"
-#         context = "Here are some products with their ratings."
-#     elif "recommend" in question or "best" in question:
-#         query = "SELECT name, price, rating FROM products ORDER BY rating DESC LIMIT 5"
-#         context = "These are some highly-rated products you may like."
-#     else:
-#         return jsonify({"bot_response": "I'm sorry, I didn't understand that. Please ask about products, such as prices or ratings."})
-#
-#     # Fetch product data
-#     conn = get_db_connection()
-#     products = conn.execute(query).fetchall()
-#     conn.close()
-#
-#     # Format results intelligently
-#     results = [dict(row) for row in products]
-#     if results:
-#         summary = "\n".join([f"- {p['name']}: ${p.get('price', 'N/A')}, Rating: {p.get('rating', 'N/A')}" for p in results])
-#         if len(results) > 5:
-#             summary += "\n...and more. Please refine your query for additional details."
-#     else:
-#         summary = "No matching products found."
-#
-#     # Generate conversational response
-#     response = requests.post(
-#         HUGGING_FACE_API_URL,
-#         headers={"Authorization": f"Bearer {HUGGING_FACE_API_TOKEN}"},
-#         json={"inputs": f"{context}\n\n{summary}\n\nUser Question: {question}"}
-#     )
-#     bot_response = response.json().get("generated_text", "I'm sorry, I couldn't understand that.")
-#
-#     # Combine bot response and formatted results
-#     combined_response = f"{bot_response}\n\nProduct Details:\n{summary}" if results else bot_response
-#
-#     return jsonify({"bot_response": combined_response})
-
-
-
 
 @app.route('/api/category-distribution', methods=['GET'])
 def get_category_distribution():
