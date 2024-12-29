@@ -288,7 +288,6 @@ def get_products():
     finally:
         conn.close()
 
-
 @app.route('/products', methods=['POST'])
 def add_product():
     data = request.json
@@ -300,15 +299,6 @@ def add_product():
     if conn is None:
         return jsonify({'error': 'Failed to connect to the database'}), 500
     try:
-        # Check if product with the same name (case-insensitive) already exists
-        existing_product = conn.execute(
-            'SELECT * FROM products WHERE LOWER(name) = LOWER(?)',
-            (data['name'],)
-        ).fetchone()
-
-        if existing_product:
-            return jsonify({'error': 'Product with the same name already exists'}), 400
-
         conn.execute(
             '''INSERT INTO products (name, price, brand, category, rating, color, size)
                VALUES (?, ?, ?, ?, ?, ?, ?)''',
